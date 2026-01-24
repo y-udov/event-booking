@@ -1,9 +1,10 @@
 POST  http://localhost:8080/events
 content-type: application/json
+authorization: <JWT_TOKEN>
 
 {
-    "name": "Test event2",
-    "description": "Test descr2",
+    "name": "Test event",
+    "description": "Test descr",
     "location": "test location",
     "dateTime": "2026-01-01T15:30:00.000Z"
 }

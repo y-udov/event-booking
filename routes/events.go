@@ -37,14 +37,13 @@ func getEvent(ctx *gin.Context) {
 func createEvent(ctx *gin.Context) {
 	var event models.Event
 	err := ctx.ShouldBindJSON(&event)
-
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Failed to parse the request data"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Failed to parse the request data"})
 		return
 	}
 
-	event.ID = 1
-	event.UserID = 1
+	userId := ctx.GetInt64("userId")
+	event.UserID = userId
 
 	err = event.Save()
 	if err != nil {
@@ -63,9 +62,15 @@ func updateEvent(ctx *gin.Context) {
 		return
 	}
 
-	_, err = models.GetEventById(eventId)
+	userId := ctx.GetInt64("userId")
+	event, err := models.GetEventById(eventId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Couldn't fetch event"})
+		return
+	}
+
+	if event.UserID != userId {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized to update the event"})
 		return
 	}
 
@@ -93,9 +98,15 @@ func deleteEvent(ctx *gin.Context) {
 		return
 	}
 
+	userId := ctx.GetInt64("userId")
 	event, err := models.GetEventById(eventId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Couldn't fetch event"})
+		return
+	}
+
+	if event.UserID != userId {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized to delete the event"})
 		return
 	}
 
